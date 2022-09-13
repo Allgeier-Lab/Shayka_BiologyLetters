@@ -1,7 +1,6 @@
 ###########
 #This code takes C, N, and P values calculated in Caribbean_C_storage (and N and P) and calculates dollar ($) values and graphs for manuscript
-#Created by Bridget Shayka on 4-4-22
-#Last modified by Bridget Shayka on 9-7-22
+#Created by Bridget Shayka
 ##########
 
 ##Load libraries -------------
@@ -9,13 +8,7 @@ library(tidyverse)
 library(reshape2)
 library(plotrix)
 library(ggforce)
-library(ggbreak)
-#If you use ggbreak in published research, please cite the following paper:
-#S Xu, M Chen, T Feng, L Zhan, L Zhou, G Yu. Use ggbreak to effectively utilize plotting space to deal with large datasets and outliers. Frontiers in Genetics. 2021, 12:774846. doi:10.3389/fgene.2021.774846 
-
-
-##Load functions ------------
-
+library(ggbreak) #S Xu, M Chen, T Feng, L Zhan, L Zhou, G Yu. Use ggbreak to effectively utilize plotting space to deal with large datasets and outliers. Frontiers in Genetics. 2021, 12:774846. doi:10.3389/fgene.2021.774846 
 
 
 ##Load data -----------------
@@ -109,7 +102,7 @@ sum(Cbycountry$area)
 byCountry <- format(Cbycountry, scientific = F, digits = 3) #if you don't want the numbers in scientific notation
 
 ##C stock in Caribbean compared to...
-#all of these are in Pg
+#all of these are in Petagrams (Pg)
 CaribCPg <- Caribbean_carbon/1000
 CaribCsdPg <- Caribbean_carbon_sd/1000
 GlobalSG <- (4.2+8.4)/2
@@ -142,18 +135,10 @@ comparisons_df <- data.frame(names, values, upuncerts, lowuncerts) %>%
          per = "%") %>%
   unite('merged', relative:per, remove=FALSE, sep= "")
 
+
+
 ##Graphs ---------------- 
 #C, N, and P totals for the Caribbean
-cnp_graph <- cnp_df %>%
-  ggplot(aes(x=nutrient, y=Total)) +
-  geom_col() + 
-  geom_errorbar(aes(ymin=Total-total_sd, ymax=Total+total_sd), width=.2) +
-  theme_classic() +
-  labs(x= "Nutrient",
-       y= "Amount in Caribbean (Tg)") +
-  geom_text(aes(label = c("1336.3 (0.4%)", "109.5 (0.2%)", "7.2 (0.05%)"), y = Total + 100))
-
-ggsave(filename = "Caribbean_cnp.pdf", path="outputs", plot=cnp_graph, device = "pdf", width = 7, height = 6, units="in", dpi=300)
 
 mb <- unique(as.numeric(1:10 %o% 10 ^ (0:3))) #this object creates a set of minor break values that are reasonable for log scales up to 10,000
 cnp_graph2 <- cnp_df %>%
@@ -168,7 +153,6 @@ cnp_graph2 <- cnp_df %>%
   theme(panel.grid.major.y = element_line(color = "darkgray"),
         panel.grid.minor.y = element_line(),
         aspect.ratio = 2/1) +  #makes the x axis narrower but keeps the height the same
-#        plot.margin = margin(0, 0, 0, 0)) +
   labs(x= "Nutrient",
        y= expression('Amount in Caribbean (Tg) [Ticks placed on '*log[10]*' scale]')) + 
   theme(axis.text = element_text(size=12),
@@ -178,66 +162,11 @@ cnp_graph2 <- cnp_df %>%
 ggsave(filename = "Caribbean_cnp_log10.pdf", path="outputs", plot=cnp_graph2, device = "pdf", width = 7, height = 6, units="in", dpi=300)
 
 
-#C, N, and P breakdown by AG, BG, and Sediment for Caribbean
-cnp_long <- cnp_df %>%
-  select(ag_per, bg_per, sed_per, nutrient) %>%
-  reshape2::melt()
-
-cnp_per_graph <- cnp_long %>%
-  ggplot() +
-  geom_col(aes(x=variable, y=value, fill=nutrient), position = "dodge") +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Percent of Total",
-       title= "Carbon, Nitrogen, and Phosphorus Pools in Seagrass Beds of the Caribbean",
-       fill = "Nutrient") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground", "Sediment"))
-
-ggsave(filename = "Caribbean_cnp_pools.pdf", path="outputs", plot=cnp_per_graph, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-
-
 #Value of C and seagrass by country
-values_long <- Cbycountry %>%
-  select(countries, c_value, seagrass_value) %>%
-  reshape2::melt()
-
-value_graph <- values_long %>%
-  ggplot() +
-  geom_col(aes(x=countries, y=value, fill=variable), position = "dodge") +
-  theme_classic() +
-  labs(x= "Country",
-       y= "Value (Billions of USD)",
-       title= "Value of Carbon and Seagrass Beds in the Caribbean",
-       fill = "Resource") +
-  scale_fill_discrete(labels = c("Carbon", "Seagrass")) +
-  coord_flip() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) #this rotates the x axis labels and makes them centered and readable
-
-
 values_long2 <- Cbycountry %>%
   mutate(c3_value = c_value *2) %>%
   select(countries, seagrass_value, c3_value) %>%
   reshape2::melt()
-
-value_graph2 <- values_long2 %>%
-  ggplot() +
-  geom_col(aes(x=forcats::fct_rev(forcats::fct_reorder(countries, value)), y=value, fill=variable), position = "dodge", show.legend = FALSE) +
-  ggforce::facet_zoom(ylim = c(0, 6), zoom.size = 1.5) +
-  scale_y_continuous( "Seagrass Value (Billions of USD)", 
-                      sec.axis = sec_axis(~ . * 1/2, name = "Carbon Value (Billions of USD)")) +
-  theme_classic() +
-  labs(x= "Country",
-       title= "Value of Carbon and Seagrass Beds in the Caribbean") +
-  scale_fill_discrete(labels = c("Carbon", "Seagrass")) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
-        axis.title.y = element_text(color = "red", size=13),
-        axis.text.y = element_text(color = "red"),
-        axis.title.y.right = element_text(color = "turquoise4", size=13),
-        axis.text.y.right = element_text(color = "turquoise4"),
-        panel.border = element_rect(colour = "black", fill=NA))
-
-ggsave(filename = "Caribbean_values2.pdf", path="outputs", plot=value_graph2, device = "pdf", width = 12, height = 6, units="in", dpi=300)
 
 value_graph3 <- values_long2 %>%
   mutate(bin = value > 50) %>%
@@ -261,80 +190,8 @@ value_graph3 <- values_long2 %>%
 
 ggsave(filename = "Caribbean_values.pdf", path="outputs", plot=value_graph3, device = "pdf", width = 8, height = 6, units="in", dpi=300)
 
-value_graph4 <- values_long2 %>%
-  mutate(bin = value > 50) %>%
-  ggplot() +
-  geom_point(aes(x=forcats::fct_rev(forcats::fct_reorder(countries, value)), y=value, color=variable), position = "jitter", show.legend = FALSE) +
-  facet_grid(. ~ bin, scale='free_x') +
-  coord_flip() +
-  scale_y_continuous( "Seagrass Value (Billions of USD)", 
-                      sec.axis = sec_axis(~ . * 1/2, name = "Carbon Value (Billions of USD)")) +
-  theme_classic() +
-  theme(strip.text.x = element_blank()) +
-  labs(x= "Country",
-       title= "Value of Carbon and Seagrass Beds in the Caribbean") +
-  scale_fill_discrete(labels = c("Carbon", "Seagrass")) +
-  theme(axis.title.x = element_text(color = "red", size=12),
-        axis.text.x = element_text(color = "red"),
-        axis.title.x.top = element_text(color = "turquoise4", size=12),
-        axis.text.x.top = element_text(color = "turquoise4"),
-        panel.border = element_rect(colour = "black", fill=NA))
-
-
 
 #C stock in Caribbean compared to...
-
-comparisons_graph <- comparisons_df %>%
-  ggplot() +
-  geom_col(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values)) +
-  theme_classic() +
-  geom_errorbar(aes(ymin=values-uncerts, ymax=values+uncerts, x=names), width=.2) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  labs(x= "Carbon Pool",
-       title= "Comparison of Carbon Pools on Earth",
-       y= "Carbon (Pg)")
-
-comparisons_graph2 <- comparisons_df %>%
-  ggplot() +
-  geom_col(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values)) +
-  ggforce::facet_zoom(ylim = c(0, 10), zoom.size = 1.5) +
-  theme_classic() +
-  geom_errorbar(aes(ymin=values-uncerts, ymax=values+uncerts, x=names), width=.2) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  labs(x= "Carbon Pool",
-       title= "Comparison of Carbon Pools on Earth",
-       y= "Carbon (Pg)")
-
-comparisons_graph3 <- comparisons_df %>%
-  mutate(bin = values < 50) %>%
-  ggplot() +
-  geom_point(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values), size=c(1.5,1.5,0,1.5,1.5,1.5)) + #the zero basically gets rid of the mean point for Med seagrass
-  facet_grid(bin ~ ., scale='free_y') +
-  geom_errorbar(aes(ymin=values-lowuncerts, ymax=values+upuncerts, x=names), width=.2) +
-  theme_classic() +
-  theme(strip.text.y = element_blank()) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  labs(x= "Carbon Pool",
-       title= "Comparison of Carbon Pools on Earth",
-       y= "Carbon (Pg)") +
-  geom_hline(yintercept = 12.5, linetype="dashed", color = "gray", size=.5)
-
-comparisons_graph4 <- comparisons_df %>%
-  mutate(bin = values > 50) %>%
-  ggplot() +
-  geom_point(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values), size=c(1.5,0,0,1.5,1.5,1.5)) + #the zero basically gets rid of the mean point for Med seagrass
-  facet_grid(. ~ bin, scale='free_x') +
-  coord_flip() +
-  geom_errorbar(aes(ymin=values-lowuncerts, ymax=values+upuncerts, x=names), width=.2, size=0.8) +
-  theme_classic() +
-  theme(strip.text.x = element_blank()) +
-  labs(x= "Carbon Pool",
-       title= "Comparison of Carbon Pools on Earth",
-       y= "Carbon (Pg)") +
-  geom_hline(yintercept = 12.5, linetype="dashed", color = "gray", size=.5)
-
-ggsave(filename = "GlobalComparisons.pdf", path="outputs", plot=comparisons_graph4, device = "pdf", width = 8, height = 7, units="in", dpi=300)
-
 comparisons_graph5 <- comparisons_df %>%
   mutate(bin = values > 50) %>%
   ggplot() +
@@ -348,30 +205,9 @@ comparisons_graph5 <- comparisons_df %>%
   theme(axis.text = element_text(size=17, color = "black"),
         axis.title = element_text(size=17, color = "black"),
         panel.background = element_rect(colour = "black", fill=NA)) +
-#        plot.margin = margin(10, 10, 10, 10)) + #this makes it so the labels aren't cut off on the side
-#  geom_hline(yintercept = 11.5, linetype="dashed", color = "gray", size=.5) +
   geom_text(x=names, y=values, label=comparisons_df$times,
             vjust = 2.5, hjust = .25, size=6)
 
-
 ggsave(filename = "GlobalComparisons2.pdf", path="outputs", plot=comparisons_graph5, device = "pdf", width = 9, height = 7, units="in", dpi=300)
-
-# comparisons_graph6 <- comparisons_df %>%
-#   mutate(bin = values > 50) %>%
-#   ggplot() +
-#   geom_point(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values), size=c(5,0,0,5,5,5), color="forestgreen") + #the zero basically gets rid of the mean point for Med seagrass
-#   geom_errorbar(aes(ymin=values-lowuncerts, ymax=values+upuncerts, x=names), width=.17, size=0.8) +
-#   theme_classic() +
-#   ggbreak::scale_y_break(c(11, 80), scales = 1.2) + #this adds a break in the y axis and zooms in to the lower portion of the graph
-#   labs(x= "Carbon Pool",
-#        y= "Carbon (Pg)") +
-#   theme(axis.text = element_text(size=14),
-#         axis.title = element_text(size=14)) +
-#   #        plot.margin = margin(10, 10, 10, 10)) + #this makes it so the labels aren't cut off on the side
-#   geom_hline(yintercept = 11.5, linetype="dashed", color = "gray", size=.5) +
-#   geom_text(x=names, y=values, label=comparisons_df$merged,
-#             vjust = 0, hjust = 0.05)
-# 
-# ggsave(filename = "GlobalComparisons3.pdf", path="outputs", plot=comparisons_graph6, device = "pdf", width = 9, height = 7, units="in", dpi=300)
 
 

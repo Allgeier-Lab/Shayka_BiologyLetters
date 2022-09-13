@@ -1,9 +1,7 @@
 ###########
 #This code takes .tif files and .tif.vat.dbf files and calculates phosphorus storage in that area of seagrass
-#And produces graphs of the data
 #This is for all of the Caribbean
-#Created by Bridget Shayka on 12-20-21
-#Last modified by Bridget Shayka on 12-20-21
+#Created by Bridget Shayka
 ##########
 
 ##Load libraries -------------
@@ -31,6 +29,7 @@ names_tif <- list.files("data/caribbean_maps/", pattern = "*.tif$", full.names =
 
 names_rat <- list.files("data/caribbean_maps/", pattern = "*.tif.vat.dbf$", full.names = TRUE) %>% 
   stringr::str_sort()
+
 
 ##Data analysis -------------
 
@@ -60,7 +59,7 @@ bgp_mean <- 0.000125 #mean % Phosphorus of bg biomass as a decimal (gP gDW-1)
 bgp_sd <- 0.00003354 #standard deviation of mean % P of bg biomass
 sedp_mean <- 82 #mean Phosphorus in top 1m of sediment (gP m-2)
 sedp_sd <- 36 #standard deviation of mean P in sediment
-units <- 1000000000000 #value to divide by to get reasonable units of Nitrogen (1000000 gives Mg (MgN = 1000 kg), 1000000000000 gives Tg, 1 gives g)
+units <- 1000000000000 #value to divide by to get reasonable units of Phosphorus (1000000 gives Mg (MgN = 1000 kg), 1000000000000 gives Tg, 1 gives g)
 
 cell_area <- 16 #area of each cell in m2, which is the same for every cell, it's the resolution of the raster, which is product of 4mx4m
 
@@ -154,57 +153,6 @@ saveRDS(result_list, file="outputs/phosphorus_list_carib.rds") #DO THIS!!!!!!!!!
 #result_df <- dplyr::bind_rows(result_list, .id = "id")
 
 result_list <- readRDS("outputs/phosphorus_list_carib.rds")
-
-
-######## to get sums across matrices
-#output is a matrix with "its" number of rows where each row is the sum of a run for the whole Bahamas
-#then can graph/average that matrix
-
-Caribbean_sums_mat <- Reduce('+', result_list) #first line is the sum of all the first lines of the matrices in the list, second line is...
-Caribbean_totals <- colMeans(Caribbean_sums_mat)
-Caribbean_sds <- apply(Caribbean_sums_mat, 2, sd) #2 means apply by columns (1 would be by rows), sd is standard deviation function
-
-Caribbean_phosphorus <- sum(Caribbean_totals[c(1:3)])
-Caribbean_phosphorus_sd <- sapply(Caribbean_sds[c(1:3)], function(x) x^2 ) %>%
-  sum() %>%
-  sqrt()
-
-##Graphs ---------------- 
-
-
-long <- reshape2::melt(Caribbean_sums_mat) #changing the format of the matrix allows you to graph it
-agbgsed <- long %>%
-  filter(Var2 != "area_total") %>%
-  group_by(Var2) %>%
-  summarise(avg = mean(value),
-            stdev = sd(value)) %>%
-  ggplot() + 
-  geom_col(aes(x=Var2, y=avg)) +
-  geom_errorbar(aes(ymin=avg-stdev, ymax=avg+stdev, x=Var2), width=.2) +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Phosphorus (Tg)",
-       title= "Phosphorus Pools in Seagrass Beds of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground", "Sediment"))
-
-ggsave(filename = "Caribbean_phosphorus.pdf", path="outputs", plot=agbgsed, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-agbg <- long %>%
-  filter(Var2 != "area_total", Var2 != "sed_p_total") %>%
-  group_by(Var2) %>%
-  summarise(avg = mean(value),
-            stdev = sd(value)) %>%
-  ggplot() + 
-  geom_col(aes(x=Var2, y=avg)) +
-  geom_errorbar(aes(ymin=avg-stdev, ymax=avg+stdev, x=Var2), width=.2) +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Phosphorus (Tg)",
-       title= "Phosphorus Pools in Seagrass of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground"))
-
-ggsave(filename = "Caribbean_seagrass_phosphorus.pdf", path="outputs", plot=agbg, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
 
 
 

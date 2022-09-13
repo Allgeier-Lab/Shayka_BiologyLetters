@@ -1,9 +1,7 @@
 ###########
 #This code takes .tif files and .tif.vat.dbf files and calculates carbon storage in that area of seagrass - uses values from the literature
-#And produces graphs of the data
 #This is for all of the Caribbean
-#Created by Bridget Shayka on 12-15-21
-#Last modified by Bridget Shayka on 3-4-22
+#Created by Bridget Shayka
 ##########
 
 ##Load libraries -------------
@@ -32,15 +30,18 @@ names_tif <- list.files("data/caribbean_maps/", pattern = "*.tif$", full.names =
 names_rat <- list.files("data/caribbean_maps/", pattern = "*.tif.vat.dbf$", full.names = TRUE) %>% 
   stringr::str_sort()
 
+
 ##Data analysis -------------
 
 #Mean (+-SD) AG biomass 47.84 +- 28.98 gDW m-2 from Fourqurean et al. 2012 NatGeosci data for only Caribbean Thalassia communities
 #Mean (+-SD) %C for AG biomass 36.9 +- 2.5 % of DW from Fourqurean and Zieman 2002 Biogeochem Table 1 for Thalassia testudinum in Florida Bay
+
 #Mean (+-SD) BG biomass 191.47 +- 135.67 gDW m-2 from Fourqurean et al. 2012 NatGeosci data for only Caribbean Thalassia communities
 #Mean (+-SD) %C for BG biomass 30.890 +- 1.059 % of DW from Layman et al. 2016 EcolEng Supp Appendix A for Thalassia testudinum in The Bahamas
 #Root: 30.085 +- 1.819, Rhizome: 31.695 +- 1.086
 #(30.085+31.695)/2 #= 30.890
 #.5*sqrt(((1.819)^2)+((1.086)^2)) #= 1.059
+
 #Mean (+-SD) sediment C 15090 +- 4840 gC m-2 in top 1m of sediment from Howard et al. 2018 Table 3 for Tropical Western Atlantic (data from Fourqurean et al. 2012)
 #150.9 Mg/ha * 100 = 15090 g/m2 #10000 m2 = 1 ha; 1000000 g = 1 Mg
 #48.4 Mg/ha * 100 = 4840 g/m2
@@ -154,185 +155,5 @@ saveRDS(result_list, file="outputs/carbon_list_carib.rds")
 result_list <- readRDS("outputs/carbon_list_carib.rds")
 
 
-######## to get sums across matrices
-#output is a matrix with "its" number of rows where each row is the sum of a run for the whole Bahamas
-#then can graph/average that matrix
 
-Caribbean_sums_mat <- Reduce('+', result_list) #first line is the sum of all the first lines of the matrices in the list, second line is...
-Caribbean_totals <- colMeans(Caribbean_sums_mat)
-Caribbean_sds <- apply(Caribbean_sums_mat, 2, sd) #2 means apply by columns (1 would be by rows), sd is standard deviation function
-
-Caribbean_carbon <- sum(Caribbean_totals[c(1:3)])
-Caribbean_carbon_sd <- sapply(Caribbean_sds[c(1:3)], function(x) x^2 ) %>%
-  sum() %>%
-  sqrt()
-
-##Graphs ---------------- 
-
-
-long <- reshape2::melt(Caribbean_sums_mat) #changing the format of the matrix allows you to graph it
-agbgsed <- long %>%
-  filter(Var2 != "area_total") %>%
-  group_by(Var2) %>%
-  summarise(avg = mean(value),
-            stdev = sd(value)) %>%
-  ggplot() + 
-  geom_col(aes(x=Var2, y=avg)) +
-  geom_errorbar(aes(ymin=avg-stdev, ymax=avg+stdev, x=Var2), width=.2) +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Carbon (Tg)",
-       title= "Carbon Pools in Seagrass Beds of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground", "Sediment"))
-
-ggsave(filename = "Caribbean_carbon.pdf", path="outputs", plot=agbgsed, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-agbg <- long %>%
-  filter(Var2 != "area_total", Var2 != "sed_c_total") %>%
-  group_by(Var2) %>%
-  summarise(avg = mean(value),
-            stdev = sd(value)) %>%
-  ggplot() + 
-  geom_col(aes(x=Var2, y=avg)) +
-  geom_errorbar(aes(ymin=avg-stdev, ymax=avg+stdev, x=Var2), width=.2) +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Carbon (Tg)",
-       title= "Carbon Pools in Seagrass of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground"))
-
-ggsave(filename = "Caribbean_seagrass_carbon.pdf", path="outputs", plot=agbg, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-
-#dotplots
-agbgsed_pts <- long %>%
-  filter(Var2 != "area_total") %>%
-  ggplot(aes(x=Var2, y=value)) + 
-  geom_jitter(width = 0.1) +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Carbon (Tg)",
-       title= "Carbon Pools in Seagrass Beds of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground", "Sediment"))
-
-ggsave(filename = "Caribbean_carbon_point.pdf", path="outputs", plot=agbgsed_pts, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-
-agbg_pts <- long %>%
-  filter(Var2 != "area_total", Var2 != "sed_c_total") %>%
-  ggplot(aes(x=Var2, y=value)) + 
-  geom_jitter(width = 0.1) +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Carbon (Tg)",
-       title= "Carbon Pools in Seagrass of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground"))
-
-ggsave(filename = "Caribbean_seagrass_carbon_point.pdf", path="outputs", plot=agbg_pts, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-#boxplots
-agbgsed_box <- long %>%
-  filter(Var2 != "area_total") %>%
-  ggplot(aes(x=Var2, y=value)) + 
-  geom_boxplot() +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Carbon (Tg)",
-       title= "Carbon Pools in Seagrass Beds of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground", "Sediment"))
-
-ggsave(filename = "Caribbean_carbon_box.pdf", path="outputs", plot=agbgsed_box, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-agbg_box <- long %>%
-  filter(Var2 != "area_total", Var2 != "sed_c_total") %>%
-  ggplot(aes(x=Var2, y=value)) + 
-  geom_boxplot() +
-  theme_classic() +
-  labs(x= "Pool",
-       y= "Carbon (Tg)",
-       title= "Carbon Pools in Seagrass of the Caribbean") +
-  scale_x_discrete(labels = c("Aboveground", "Belowground"))
-
-ggsave(filename = "Caribbean_seagrass_carbon_box.pdf", path="outputs", plot=agbg_box, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
-
-
-
-#### Plot dist #### 
-
-
-sourceCpp("scripts/rcpp_calc_carbon2.cpp")
-sourceCpp("scripts/rcpp_calc_sed2.cpp")
-
-# number of cells to use
-cells <- 1000000
-
-# pull one random number for each cell and save in vector
-sed_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_sed(n = 1, norm_mean = sedc_mean, norm_sd = sedc_sd, verbose = FALSE)
-})
-
-# plot density
-seddist <- ggplot() + 
-  geom_density(aes(x = sed_cells_dist)) + 
-  labs(x = "Sediment Carbon value", y = "Density")
-
-
-
-
-agd_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_carbon(n = 1, trunc_min = agb_mean, trunc_max = Inf, trunc_mean = agb_mean, trunc_sd = agb_sd, norm_mean = agc_mean, norm_sd = agc_sd, verbose = FALSE)
-})
-
-agddist <- ggplot() + 
-  geom_density(aes(x = agd_cells_dist)) + 
-  labs(x = "AG dense Carbon value (AG dense biomass * AG %C)", y = "Density")
-
-
-ags_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_carbon(n = 1, trunc_min = 0, trunc_max = agb_mean, trunc_mean = agb_mean, trunc_sd = agb_sd, norm_mean = agc_mean, norm_sd = agc_sd, verbose = FALSE)
-})
-
-agsdist <- ggplot() + 
-  geom_density(aes(x = ags_cells_dist)) + 
-  labs(x = "AG sparse Carbon value (AG sparse biomass * AG %C)", y = "Density")
-
-
-
-bgd_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_carbon(n = 1, trunc_min = bgb_mean, trunc_max = Inf, trunc_mean = bgb_mean, trunc_sd = bgb_sd, norm_mean = bgc_mean, norm_sd = bgc_sd, verbose = FALSE)
-})
-
-bgddist <- ggplot() + 
-  geom_density(aes(x = bgd_cells_dist)) + 
-  labs(x = "BG dense Carbon value (BG dense biomass * BG %C)", y = "Density")
-
-
-
-bgs_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_carbon(n = 1, trunc_min = 0, trunc_max = bgb_mean, trunc_mean = bgb_mean, trunc_sd = bgb_sd, norm_mean = bgc_mean, norm_sd = bgc_sd, verbose = FALSE)
-})
-
-bgsdist <- ggplot() + 
-  geom_density(aes(x = bgs_cells_dist)) + 
-  labs(x = "BG sparse Carbon value (BG sparse biomass * BG %C)", y = "Density")
-
-
-bgc_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_sed(n = 1, norm_mean = bgc_mean, norm_sd = bgc_sd, verbose = FALSE)
-})
-
-bgcdist <- ggplot() + 
-  geom_density(aes(x = bgc_cells_dist)) + 
-  labs(x = "BG %Carbon value", y = "Density")
-
-agc_cells_dist <- purrr::map_dbl(1:cells, function(i){  
-  rcpp_calc_sed(n = 1, norm_mean = agc_mean, norm_sd = agc_sd, verbose = FALSE)
-})
-
-agcdist <- ggplot() + 
-  geom_density(aes(x = agc_cells_dist)) + 
-  labs(x = "AG %Carbon value", y = "Density")
-
-ggpubr::ggarrange(agsdist, agddist, bgsdist, bgddist, agcdist, bgcdist, seddist, ncol=2, nrow = 4)
 
