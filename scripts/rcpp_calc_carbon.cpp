@@ -1,11 +1,11 @@
 // [[Rcpp::depends(RcppDist, RcppProgress)]]
 
+// include headers
 #include <Rcpp.h>
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include <truncnorm.h>
 #include <chrono>
-
 
 using namespace Rcpp;
 

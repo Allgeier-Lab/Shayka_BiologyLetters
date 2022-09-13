@@ -1,11 +1,16 @@
 // [[Rcpp::depends(RcppProgress)]]
 
+// include headers
 #include <Rcpp.h>
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include <chrono>
 
 using namespace Rcpp;
+
+// Truncated normal distribution from: J.B. Duck-Mayr (2018). RcppDist: 'Rcpp'
+// Integration of Additional Probability Distributions. R package version 0.1.1.
+// <https://CRAN.R-project.org/package=RcppDist>
 
 // [[Rcpp::export]]
 double rcpp_calc_sed(double n, double norm_mean, double norm_sd) {
