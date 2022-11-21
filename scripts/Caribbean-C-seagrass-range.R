@@ -127,9 +127,11 @@ sbatch_carbon <- rslurm::slurm_apply(f = foo, params = n_seagrass,
 
 suppoRt::rslurm_missing(x = sbatch_carbon)
 
-sbatch_carbon <- rslurm::get_slurm_out(sbatch_carbon, outtype = "table")
+carbon_df <- rslurm::get_slurm_out(sbatch_carbon, outtype = "table")
 
-suppoRt::save_rds(object = sbatch_carbon, path = "Results/", 
+suppoRt::save_rds(object = carbon_df, path = "Results/", 
                   overwrite = FALSE, filename = "seagrass-carbon.rds")
+
+write.csv(x = carbon_df, file = "Results/seagrass-carbon.csv", row.names = FALSE)
 
 rslurm::cleanup_files(sbatch_carbon)
