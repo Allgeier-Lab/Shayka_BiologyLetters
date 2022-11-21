@@ -85,9 +85,11 @@ sbatch_sediment <- rslurm::slurm_apply(f = foo, params = n_seagrass,
 
 suppoRt::rslurm_missing(x = sbatch_sediment)
 
-sbatch_sediment <- rslurm::get_slurm_out(sbatch_sediment, outtype = "table")
+sediment_df <- rslurm::get_slurm_out(sbatch_carbon, outtype = "table")
 
-suppoRt::save_rds(object = sbatch_sediment, path = "Results/", 
-                  overwrite = FALSE, filename = "sediment-carbon.rds")
+suppoRt::save_rds(object = sediment_df, path = "Results/", 
+                  overwrite = FALSE, filename = "seagrass-carbon.rds")
+
+write.csv(x = sediment_df, file = "Results/seagrass-sediment.csv", row.names = FALSE)
 
 rslurm::cleanup_files(sbatch_sediment)
