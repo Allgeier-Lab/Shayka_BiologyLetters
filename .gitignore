@@ -8,3 +8,5 @@ data/
 scripts/testing/
 tmap.pdf
 Map coloring_The color scale styles available in the tmap package.webarchive
+.rds
+_rslurm*
