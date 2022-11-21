@@ -67,13 +67,13 @@ foo <- function(n_sedi, country) {
 
 #### Submit to cluster ####
 
-globals <- c("n_sample", "verbose") # filter_meta 
+globals <- c("n_sample", "sedc_mean", "sedc_sd", "verbose") # filter_meta 
 
 rscript_path <- "/sw/pkgs/arc/stacks/gcc/10.3.0/R/4.2.0/lib64/R/bin/Rscript"
 
-sbatch_sediment <- rslurm::slurm_apply(f = foo, params = n_seagrass, 
+sbatch_sediment <- rslurm::slurm_apply(f = foo, params = n_sediment, 
                                        global_objects = globals, jobname = "sediment_c",
-                                       nodes = nrow(n_seagrass), cpus_per_node = 1, 
+                                       nodes = nrow(n_sediment), cpus_per_node = 1, 
                                        slurm_options = list("account" = "jeallg0", 
                                                             "partition" = "standard",
                                                             "time" = "02:00:00",
@@ -85,11 +85,11 @@ sbatch_sediment <- rslurm::slurm_apply(f = foo, params = n_seagrass,
 
 suppoRt::rslurm_missing(x = sbatch_sediment)
 
-sediment_df <- rslurm::get_slurm_out(sbatch_carbon, outtype = "table")
+sediment_df <- rslurm::get_slurm_out(sbatch_sediment, outtype = "table")
 
 suppoRt::save_rds(object = sediment_df, path = "Results/", 
-                  overwrite = FALSE, filename = "seagrass-carbon.rds")
+                  overwrite = FALSE, filename = "sediment-carbon.rds")
 
-write.csv(x = sediment_df, file = "Results/seagrass-sediment.csv", row.names = FALSE)
+write.csv(x = sediment_df, file = "Results/sediment-carbon.csv", row.names = FALSE)
 
 rslurm::cleanup_files(sbatch_sediment)
