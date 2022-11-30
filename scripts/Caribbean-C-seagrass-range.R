@@ -38,7 +38,7 @@ parameters_list <- list(ag = c(agb_mean = agb_mean, agb_sd = agb_sd,
 #### Prepare submission data.frame ####
 
 # get names of all tif database
-countries_attr_tables <- list.files(path = "data/caribbean_maps/", pattern = "*.tif.vat.dbf$", full.names = TRUE, recursive = TRUE) |> 
+countries_attr_tables <- list.files(path = "data/caribbean_maps", pattern = "*.tif.vat.dbf$", full.names = TRUE, recursive = TRUE) |> 
   stringr::str_sort()
 
 # create table with number of sparse and dense cells
