@@ -1,5 +1,5 @@
 ###########
-#This code takes C values calculated in Caribbean-C-seagrass-range.R and Caribbean-C-sediment-range.R and calculates dollar ($) values and graphs for manuscript
+#This code takes C, N, and P values calculated in Caribbean_C_storage (and N and P) and calculates dollar ($) values and graphs for manuscript
 #Created by Bridget Shayka
 ##########
 
@@ -12,34 +12,19 @@ library(ggbreak) #S Xu, M Chen, T Feng, L Zhan, L Zhou, G Yu. Use ggbreak to eff
 
 
 ##Load data -----------------
-Cseagrass <- read_csv("Results/seagrass-carbon.csv")
-Csediment <- read_csv("Results/sediment-carbon.csv")
+Cresult_list <- readRDS("outputs/carbon_list_carib.rds")
+Nresult_list <- readRDS("outputs/nitrogen_list_carib.rds")
+Presult_list <- readRDS("outputs/phosphorus_list_carib.rds")
 
-
-countries <- c("Bahamas", "British Virgin Islands", "Cayman Islands", "Cuba", "Dominican Republic", "Anguilla", "Antigua & Barbuda", "Dominica", 
-               "Guadeloupe", "Montserrat", "Saba", "St. Barthelemy", "St. Martin", "St. Eustatius", "St. Maarten", "St. Kitts & Nevis", 
-               "Barbados", "Grenada", "Martinique", "St. Lucia", "St. Vincent & the Grenadines", "Trinidad & Tobago", "Haiti", "Jamaica", 
-               "Puerto Rico", "Turks & Caicos", "US Virgin Islands")
+countries <- c("Anguilla", "Antigua & Barbuda", "Barbados", "Bahamas", "British Virgin Islands", "Cuba", "Cayman Islands", "Dominica", 
+               "Dominican Republic", "Grenada", "Guadeloupe", "Haiti", "Jamaica", "Martinique", "Montserrat", "Puerto Rico", "Saba", 
+               "St. Barthelemy", "St. Lucia", "St. Martin", "St. Eustatius", "St. Maarten", "St. Kitts & Nevis", 
+               "St. Vincent & the Grenadines", "Turks & Caicos", "Trinidad & Tobago", "US Virgin Islands")
 
 
 ##Data analysis -------------
-##C totals for the Caribbean and #C breakdown by AG, BG, and Sediment for Caribbean
-Carib_Cseagrass <- Cseagrass %>%
-  group_by(part, range, country) %>%
-  summarise(means = mean(value)) %>%
-  group_by(part,range) %>%
-  summarise(sums = sum(means)) %>%  #units of gC m-2
-  mutate(TgC = (sums*16)/1000000000000)
-
-Carib_Csediment <- Csediment %>%
-  group_by(type, range, country) %>%
-  summarise(means = mean(value)) %>%
-  group_by(type,range) %>%
-  summarise(sums = sum(means)) %>% #units of gC m-2
-  mutate(Tg = (sums*16)/1000000000000)
-
-###################
-
+##C, N, and P totals for the Caribbean and #C, N, and P breakdown by AG, BG, and Sediment for Caribbean
+#C
 Caribbean_Csums_mat <- Reduce('+', Cresult_list) #first line is the sum of all the first lines of the matrices in the list, second line is...
 Caribbean_Ctotals <- colMeans(Caribbean_Csums_mat)
 Caribbean_Csds <- apply(Caribbean_Csums_mat, 2, sd) #2 means apply by columns (1 would be by rows), sd is standard deviation function
@@ -49,8 +34,27 @@ Caribbean_carbon_sd <- sapply(Caribbean_Csds[c(1:3)], function(x) x^2 ) %>%
   sum() %>%
   sqrt()
 
+#N
+Caribbean_Nsums_mat <- Reduce('+', Nresult_list) #first line is the sum of all the first lines of the matrices in the list, second line is...
+Caribbean_Ntotals <- colMeans(Caribbean_Nsums_mat)
+Caribbean_Nsds <- apply(Caribbean_Nsums_mat, 2, sd) #2 means apply by columns (1 would be by rows), sd is standard deviation function
 
-#C AG,BG,Sed
+Caribbean_nitrogen <- sum(Caribbean_Ntotals[c(1:3)])
+Caribbean_nitrogen_sd <- sapply(Caribbean_Nsds[c(1:3)], function(x) x^2 ) %>%
+  sum() %>%
+  sqrt()
+
+#P
+Caribbean_Psums_mat <- Reduce('+', Presult_list) #first line is the sum of all the first lines of the matrices in the list, second line is...
+Caribbean_Ptotals <- colMeans(Caribbean_Psums_mat)
+Caribbean_Psds <- apply(Caribbean_Psums_mat, 2, sd) #2 means apply by columns (1 would be by rows), sd is standard deviation function
+
+Caribbean_phosphorus <- sum(Caribbean_Ptotals[c(1:3)])
+Caribbean_phosphorus_sd <- sapply(Caribbean_Psds[c(1:3)], function(x) x^2 ) %>%
+  sum() %>%
+  sqrt()
+
+#C,N,P AG,BG,Sed
 totals <- rbind(Caribbean_Ctotals, Caribbean_Ntotals, Caribbean_Ptotals)
 rownames(totals) <- c("Carbon", "Nitrogen", "Phosphorus")
 colnames(totals) <- c("Aboveground", "Belowground", "Sediment", "Area")
