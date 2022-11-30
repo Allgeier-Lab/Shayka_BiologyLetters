@@ -23,7 +23,7 @@ sedc_sd <- 4840 #standard deviation of mean C in sediment
 #### Prepare submission data.frame ####
 
 # get names of all tif database
-countries_attr_tables <- list.files(path = "data", pattern = "*.tif.vat.dbf$", full.names = TRUE, recursive = TRUE) |> 
+countries_attr_tables <- list.files(path = "data/caribbean_maps/", pattern = "*.tif.vat.dbf$", full.names = TRUE, recursive = TRUE) |> 
   stringr::str_sort()
 
 # create table with number of sparse and dense cells
@@ -55,11 +55,13 @@ foo <- function(n_sedi, country) {
   q_sedim_high <- dist_sedim > quantile(x = dist_sedim, probs = 0.975)
   
   # calculate cumulative biomass x carbon numbers
-  sedim_low <- rcpp_sample_sediment(sediment = dist_sedim[q_sedim_low], n = n_sedi, verbose = verbose)
+  sedim_low <- rcpp_sample_sediment(sediment = dist_sedim[q_sedim_low], 
+                                    n = n_sedi, verbose = verbose)
   
   sedim_mean <- rcpp_sample_sediment(sediment = dist_sedim, n = n_sedi, verbose = verbose)
   
-  sedim_high <- rcpp_sample_sediment(sediment = dist_sedim[q_sedim_high], n = n_sedi, verbose = verbose)
+  sedim_high <- rcpp_sample_sediment(sediment = dist_sedim[q_sedim_high], 
+                                     n = n_sedi, verbose = verbose)
   
   tibble::tibble(type = rep(x = "sediment", each = 3), 
                  range = c("low", "mean", "high"),

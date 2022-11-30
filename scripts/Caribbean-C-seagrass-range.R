@@ -38,7 +38,7 @@ parameters_list <- list(ag = c(agb_mean = agb_mean, agb_sd = agb_sd,
 #### Prepare submission data.frame ####
 
 # get names of all tif database
-countries_attr_tables <- list.files(path = "data", pattern = "*.tif.vat.dbf$", full.names = TRUE, recursive = TRUE) |> 
+countries_attr_tables <- list.files(path = "data/caribbean_maps/", pattern = "*.tif.vat.dbf$", full.names = TRUE, recursive = TRUE) |> 
   stringr::str_sort()
 
 # create table with number of sparse and dense cells
@@ -83,7 +83,8 @@ foo <- function(n_sparse, n_dense, country) {
     sparse_low <- rcpp_sample_carbon(biomass = dist_biom[q_sprs], carbon = dist_c[q_c_low], 
                                      n = n_sparse, verbose = verbose)
     
-    sparse_mean <- rcpp_sample_carbon(biomass = dist_biom[q_sprs], carbon = dist_c, n = n_sparse, verbose = TRUE)
+    sparse_mean <- rcpp_sample_carbon(biomass = dist_biom[q_sprs], carbon = dist_c, 
+                                      n = n_sparse, verbose = verbose)
     
     sparse_high <- rcpp_sample_carbon(biomass = dist_biom[q_sprs], carbon = dist_c[q_c_high], 
                                       n = n_sparse, verbose = verbose)
@@ -92,7 +93,8 @@ foo <- function(n_sparse, n_dense, country) {
     dense_low <- rcpp_sample_carbon(biomass = dist_biom[q_dns], carbon = dist_c[q_c_low], 
                                     n = n_dense, verbose = verbose)
     
-    dense_mean <- rcpp_sample_carbon(biomass = dist_biom[q_dns], carbon = dist_c, n = n_dense, verbose = TRUE)
+    dense_mean <- rcpp_sample_carbon(biomass = dist_biom[q_dns], carbon = dist_c, 
+                                     n = n_dense, verbose = verbose)
     
     dense_high <- rcpp_sample_carbon(biomass = dist_biom[q_dns], carbon = dist_c[q_c_high], 
                                      n = n_dense, verbose = verbose)
