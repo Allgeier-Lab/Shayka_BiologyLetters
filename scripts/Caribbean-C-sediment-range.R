@@ -31,10 +31,13 @@ n_sediment <- purrr::map_dfr(countries_attr_tables, function(tab_i) {
   
   tab_temp <- foreign::read.dbf(tab_i) #rat=raster attribute table #import rat from database
   
-  n_sedi <- tab_temp$Count[tab_temp$Value == "13"] # number of rows in the dense_data data frame; 13 in rat = dense seagrass
-
-  data.frame(n_sedi = ifelse(length(n_sedi) > 0, n_sedi, 0), 
-             country = stringr::str_split(tab_i, pattern = "/", simplify = TRUE)[, 3])}) |> 
+  n_sedi <- ifelse(test = length(tab_temp$Count[tab_temp$Value == "12"]) == 0, 
+         yes = 0, no = tab_temp$Count[tab_temp$Value == "12"]) + 
+    ifelse(test = length(tab_temp$Count[tab_temp$Value == "13"]) == 0, 
+         yes = 0, no = tab_temp$Count[tab_temp$Value == "13"])
+  
+  data.frame(n_sedi = n_sedi, country = stringr::str_split(tab_i, pattern = "/", 
+                                                           simplify = TRUE)[, 3])}) |> 
   dplyr::slice(rep(x = 1:dplyr::n(), each = 10))
 
 #### Init function to run on HPC ####

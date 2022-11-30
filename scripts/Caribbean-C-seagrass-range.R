@@ -55,7 +55,6 @@ n_seagrass <- purrr::map_dfr(countries_attr_tables, function(tab_i) {
              country = stringr::str_split(tab_i, pattern = "/", simplify = TRUE)[, 3])}) |> 
   dplyr::slice(rep(x = 1:dplyr::n(), each = 10))
 
-
 #### Init function to run on HPC ####
 foo <- function(n_sparse, n_dense, country) {
   
