@@ -103,8 +103,8 @@ byCountry <- format(Ctotalbycountry, scientific = F, digits = 3) #if you don't w
 ##C stock in Caribbean compared to...
 #all of these are in Petagrams (Pg)
 CaribCPg <- Caribbean_C/1000
-CaribCPgup <- Caribbean_C_high/1000
-CaribCPglow <- Caribbean_C_low/1000
+CaribCPgup <- (Caribbean_C_high - Caribbean_C)/1000
+CaribCPglow <- (Caribbean_C - Caribbean_C_low)/1000
 GlobalSG <- (4.2+8.4)/2
 GlobalSGrange <- GlobalSG-4.2
 MedSG <- ((1235.39+1733.29)/2)/1000
@@ -128,44 +128,19 @@ names <- c("Caribbean seagrass", "Global seagrass", "Mediterranean seagrass", "A
 
 
 comparisons_df <- data.frame(names, values, upuncerts, lowuncerts) %>%
-  mutate(frac = round((1.336258/values), 2),
+  mutate(frac = round((CaribCPg/values), 2),
          x = "x") %>%
   unite('times', frac:x, remove=FALSE, sep= "") %>%
-  mutate(relative = round((1.336258/values)*100, 2),
+  mutate(relative = round((CaribCPg/values)*100, 2),
          per = "%") %>%
   unite('merged', relative:per, remove=FALSE, sep= "")
 
 
 
 ##Graphs ---------------- 
-#C breakdown by AG, BG, and Sediment for Caribbean
-
-# #C, N, and P totals for the Caribbean
-# 
-# mb <- unique(as.numeric(1:10 %o% 10 ^ (0:3))) #this object creates a set of minor break values that are reasonable for log scales up to 10,000
-# cnp_graph2 <- cnp_df %>%
-#   ggplot(aes(x=nutrient, y=Total)) +
-#   geom_col() +
-#   geom_errorbar(aes(ymin=Total-total_sd, ymax=Total+total_sd), width=.2) +
-#   scale_y_continuous(trans='log10',
-#                      limits = c(NA,2000),
-#                      breaks = scales::breaks_log(),
-#                      minor_breaks = mb) + #this pulls minor breaks from the object above
-#   theme_classic() +
-#   theme(panel.grid.major.y = element_line(color = "darkgray"),
-#         panel.grid.minor.y = element_line(),
-#         aspect.ratio = 2/1) +  #makes the x axis narrower but keeps the height the same
-#   labs(x= "Nutrient",
-#        y= expression('Amount in Caribbean (Tg) [Ticks placed on '*log[10]*' scale]')) + 
-#   theme(axis.text = element_text(size=12),
-#         axis.title = element_text(size=12, color = "black")) +
-#   geom_text(aes(label = c("1336.3\n(0.4%)", "109.5\n(0.2%)", "7.2\n(0.05%)"), y = Total - (Total*0.3)), color="white") #\n makes line breaks
-# 
-# ggsave(filename = "Caribbean_cnp_log10.pdf", path="outputs", plot=cnp_graph2, device = "pdf", width = 7, height = 6, units="in", dpi=300)
-
 
 #Value of C and seagrass by country
-values_long2 <- Cbycountry %>%
+values_long2 <- Ctotalbycountry %>%
   mutate(c3_value = c_value *2) %>%
   select(countries, seagrass_value, c3_value) %>%
   reshape2::melt()
@@ -211,5 +186,53 @@ comparisons_graph5 <- comparisons_df %>%
             vjust = 2.5, hjust = .25, size=6)
 
 ggsave(filename = "GlobalComparisons2.pdf", path="outputs", plot=comparisons_graph5, device = "pdf", width = 9, height = 7, units="in", dpi=300)
+
+
+#C breakdown by AG, BG, and Sediment for Caribbean
+mb <- unique(as.numeric(1:10 %o% 10 ^ (0:3))) #this object creates a set of minor break values that are reasonable for log scales up to 10,000
+
+agbgsed_graph <- Carib_Ctotals %>%
+  cbind(pool = c("Aboveground", "Belowground", "Sediment")) %>%
+  ggplot() +
+  geom_col(aes(x=pool, y=mean)) +
+  geom_errorbar(aes(ymin=low, ymax=high, x=pool), width=.13, size=0.6) +
+  scale_y_continuous(trans='log10',
+                      limits = c(NA,3000),
+                      breaks = scales::breaks_log(),
+                      minor_breaks = mb) + #this pulls minor breaks from the object above
+  theme_classic() +
+  theme(panel.grid.major.y = element_line(color = "darkgray"),
+         panel.grid.minor.y = element_line(),
+         aspect.ratio = 1.65/1) +  #makes the x axis narrower but keeps the height the same
+  labs(x= "Carbon Pool",
+       y= expression('Carbon in Caribbean Seagrass Beds (Tg) [Ticks placed on '*log[10]*' scale]')) +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=12, color = "black"))
+
+ggsave(filename = "Caribbean_carbon_pools.pdf", path="outputs", plot=agbgsed_graph, device = "pdf", width = 8, height = 6, units="in", dpi=300)
+
+
+# #C, N, and P totals for the Caribbean
+# 
+# mb <- unique(as.numeric(1:10 %o% 10 ^ (0:3))) #this object creates a set of minor break values that are reasonable for log scales up to 10,000
+# cnp_graph2 <- cnp_df %>%
+#   ggplot(aes(x=nutrient, y=Total)) +
+#   geom_col() +
+#   geom_errorbar(aes(ymin=Total-total_sd, ymax=Total+total_sd), width=.2) +
+#   scale_y_continuous(trans='log10',
+#                      limits = c(NA,2000),
+#                      breaks = scales::breaks_log(),
+#                      minor_breaks = mb) + #this pulls minor breaks from the object above
+#   theme_classic() +
+#   theme(panel.grid.major.y = element_line(color = "darkgray"),
+#         panel.grid.minor.y = element_line(),
+#         aspect.ratio = 2/1) +  #makes the x axis narrower but keeps the height the same
+#   labs(x= "Nutrient",
+#        y= expression('Amount in Caribbean (Tg) [Ticks placed on '*log[10]*' scale]')) + 
+#   theme(axis.text = element_text(size=12),
+#         axis.title = element_text(size=12, color = "black")) +
+#   geom_text(aes(label = c("1336.3\n(0.4%)", "109.5\n(0.2%)", "7.2\n(0.05%)"), y = Total - (Total*0.3)), color="white") #\n makes line breaks
+# 
+# ggsave(filename = "Caribbean_cnp_log10.pdf", path="outputs", plot=cnp_graph2, device = "pdf", width = 7, height = 6, units="in", dpi=300)
 
 
