@@ -121,10 +121,10 @@ Fishupuncert <- 0.7*8
 Fishlowuncert <- 0.7/8
 
 
-values <- c(CaribCPg, GlobalSG, MedSG, Amazon, Tempforest, Fish)
-upuncerts <- c(CaribCPgup, GlobalSGrange, MedSGrange, Amazonuncert, Tempforestsd, Fishupuncert)
-lowuncerts <- c(CaribCPglow, GlobalSGrange, MedSGrange, Amazonuncert, Tempforestsd, Fishlowuncert)
-names <- c("Caribbean seagrass", "Global seagrass", "Mediterranean seagrass", "Amazon woody biomass", "Temperate forests", "Global fish")
+values <- c(CaribCPg, GlobalSG, MedSG, Amazon, Tempforest)
+upuncerts <- c(CaribCPgup, GlobalSGrange, MedSGrange, Amazonuncert, Tempforestsd)
+lowuncerts <- c(CaribCPglow, GlobalSGrange, MedSGrange, Amazonuncert, Tempforestsd)
+names <- c("Caribbean seagrass", "Global seagrass", "Mediterranean seagrass", "Amazon woody biomass", "Temperate forests")
 
 
 comparisons_df <- data.frame(names, values, upuncerts, lowuncerts) %>%
@@ -172,7 +172,7 @@ ggsave(filename = "Caribbean_values.pdf", path="outputs", plot=value_graph3, dev
 comparisons_graph5 <- comparisons_df %>%
   mutate(bin = values > 50) %>%
   ggplot() +
-  geom_point(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values), size=c(5,0,0,5,5,5), color="forestgreen") + #the zero basically gets rid of the mean point for Med seagrass
+  geom_point(aes(x=forcats::fct_rev(forcats::fct_reorder(names, values)), y=values), size=c(5,0,0,5,5), color="forestgreen") + #the zero basically gets rid of the mean point for Med seagrass
   coord_flip() +
   geom_errorbar(aes(ymin=values-lowuncerts, ymax=values+upuncerts, x=names), width=.13, size=0.8) +
   theme_classic() +
