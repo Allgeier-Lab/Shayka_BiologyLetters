@@ -195,7 +195,7 @@ agbgsed_graph <- Carib_Ctotals %>%
   cbind(pool = c("Aboveground", "Belowground", "Sediment")) %>%
   ggplot() +
   geom_col(aes(x=pool, y=mean)) +
-  geom_errorbar(aes(ymin=low, ymax=high, x=pool), width=.13, size=0.6) +
+  geom_errorbar(aes(ymin=low, ymax=high, x=pool), width=0, size=0.9) +
   scale_y_continuous(trans='log10',
                       limits = c(NA,3000),
                       breaks = scales::breaks_log(),
